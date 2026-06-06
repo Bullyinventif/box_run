@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Box Run</title>
+
+<style>
+
+body{
+    margin:0;
+    height:100vh;
+    overflow:hidden;
+    font-family:Arial;
+}
+
+/* 🌄 fond */
+#bg{
+    position:fixed;
+    inset:0;
+    background:url("images/fond.png") center/cover no-repeat;
+    filter:brightness(0.9);
+}
+
+/* ✨ overlay style jeu */
+#overlay{
+    position:fixed;
+    inset:0;
+    background:radial-gradient(circle at center, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
+}
+
+/* 🎮 container menu */
+#menu{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    color:white;
+}
+
+/* 📦 titre style gros jeu */
+h1{
+    font-size:80px;
+    margin:0;
+    text-shadow:4px 4px 0px black;
+    letter-spacing:3px;
+    animation:float 2s ease-in-out infinite;
+}
+
+/* 🎮 sous titre */
+#sub{
+    margin-top:10px;
+    font-size:20px;
+    opacity:0.9;
+}
+
+/* ▶ bouton play */
+button{
+    margin-top:25px;
+    padding:15px 40px;
+    font-size:30px;
+    border:none;
+    border-radius:15px;
+    cursor:pointer;
+    background:#00ff88;
+    font-weight:bold;
+    box-shadow:0 6px 0 #0a7a4a;
+    transition:transform 0.1s ease;
+}
+
+button:active{
+    transform:translateY(4px);
+    box-shadow:0 2px 0 #0a7a4a;
+}
+
+/* 📦 objets décor qui flottent */
+.floating{
+    position:absolute;
+    width:70px;
+    height:70px;
+    animation:move 6s linear infinite;
+    opacity:0.8;
+}
+
+@keyframes move{
+    0%{transform:translateY(120vh) rotate(0deg);}
+    100%{transform:translateY(-20vh) rotate(360deg);}
+}
+
+/* ✨ animation titre */
+@keyframes float{
+    0%{transform:translateY(0px);}
+    50%{transform:translateY(-10px);}
+    100%{transform:translateY(0px);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="bg"></div>
+<div id="overlay"></div>
+
+<!-- 🎮 MENU -->
+<div id="menu">
+
+    <h1>📦 BOX RUN</h1>
+
+    <div id="sub">Usine de colis</div>
+
+    <button onclick="start()">PLAY ▶</button>
+
+</div>
+
+<!-- ✨ objets décor -->
+<img class="floating" src="images/apple_1.png" style="left:10%; animation-delay:0s;">
+<img class="floating" src="images/apple_2.png" style="left:40%; animation-delay:1.5s;">
+<img class="floating" src="images/burger.png" style="left:30%; animation-delay:2s;">
+<img class="floating" src="images/cookie.png" style="left:20%; animation-delay:1s;">
+<img class="floating" src="images/box.png" style="left:60%; animation-delay:1.5s;">
+<img class="floating" src="images/sword.png" style="left:80%; animation-delay:2s;">
+
+<script>
+
+function start(){
+
+    document.body.style.transition = "0.3s ease";
+    document.body.style.transform = "scale(1.2)";
+    document.body.style.opacity = "0";
+
+    setTimeout(()=>{
+        window.location.href = "game.html";
+    },300);
+
+}
+
+</script>
+
+</body>
+</html>

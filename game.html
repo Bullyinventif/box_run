@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Box Run</title>
+
+<style>
+
+html, body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial;
+}
+
+/* 🌄 fond */
+#background{
+    position:fixed;
+    inset:0;
+    background:url("images/fond.png") center/cover no-repeat;
+    z-index:-10;
+}
+
+.belt{
+    position:absolute;
+    left:0;
+    width:100%;
+    height:140px;
+    overflow:hidden;
+    background: repeating-linear-gradient(
+        90deg,
+        #444 0px,
+        #444 40px,
+        #666 40px,
+        #666 80px
+    );
+    border-top:3px solid #222;
+    z-index:1;
+}
+
+#belt1{ top:250px; }
+#belt2{ top:380px; }
+#belt3{ top:510px; }
+
+.object{
+    position:absolute;
+    width:90px;
+    height:90px;
+    top:20px;
+    cursor:pointer;
+    object-fit:contain;
+    z-index:2;
+    will-change: transform;
+}
+
+/* 📦 SCORE */
+#score{
+    position:absolute;
+    top:10px;
+    right:20px;
+    font-size:30px;
+    font-weight:bold;
+    z-index:10;
+}
+
+/* 📦 BOÎTE */
+#orderZone{
+    position:absolute;
+    top:30px;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    z-index:10;
+}
+
+#orderBox{
+    position:relative;
+    width:180px;
+    height:180px;
+    margin:auto;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+#boxImg{
+    position:absolute;
+    width:150%;
+    height:150%;
+    object-fit:contain;
+    z-index:1;
+}
+
+#orderImage{
+    position:relative;
+    width:110px;
+    height:110px;
+    z-index:2;
+}
+
+/* 🎮 message */
+#message{
+    position:absolute;
+    top:220px;
+    width:100%;
+    text-align:center;
+    font-size:40px;
+    font-weight:bold;
+    color:white;
+    text-shadow:2px 2px 6px black;
+    opacity:0;
+}
+
+/* 📦 objets */
+.object{
+    position:absolute;
+    width:90px;
+    height:90px;
+    cursor:pointer;
+    transition:transform 0.1s ease, opacity 0.3s ease;
+    user-select:none;
+    -webkit-user-drag:none;
+}
+
+/* 💀 game over */
+#gameOver{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.8);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    color:white;
+    font-size:40px;
+}
+
+button{
+    padding:10px 20px;
+    font-size:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="background"></div>
+
+<div id="score">Score : 0</div>
+
+<div id="message"></div>
+
+<div id="orderZone">
+    <div id="orderBox">
+        <img id="boxImg" src="images/box.png">
+        <img id="orderImage">
+    </div>
+</div>
+
+<div id="gameOver">
+    <div>FIN DE SERVICE</div>
+    <div id="finalScore"></div>
+    <button onclick="location.reload()">Rejouer</button>
+</div>
+
+<div id="belt1" class="belt"></div>
+<div id="belt2" class="belt"></div>
+<div id="belt3" class="belt"></div>
+
+<script>
+
+/* 🎮 ITEMS */
+const items = [
+"apple_1.png",
+"apple_2.png",
+"apple_pie.png",
+"bacon.png",
+"burger.png",
+"cookie.png",
+"dragon_sword.png",
+"emerald.png",
+"star_collier.png",
+"sword.png"
+];
+
+let score = 0;
+let currentOrder;
+let combo = 0;
+let multiplier = 1;
+
+const orderImage = document.getElementById("orderImage");
+const scoreDisplay = document.getElementById("score");
+const message = document.getElementById("message");
+
+/* 📦 MESSAGE */
+function showMessage(text,color){
+    message.innerText = text;
+    message.style.color = color;
+    message.style.opacity = 1;
+
+    setTimeout(()=>{
+        message.style.opacity = 0;
+    },600);
+}
+
+/* 📦 NOUVELLE COMMANDE */
+function newOrder(){
+    currentOrder = items[Math.floor(Math.random()*items.length)];
+    orderImage.src = "images/" + currentOrder;
+}
+
+/* 💥 BOOM BOÎTE */
+function boxBounce(){
+    const box = document.getElementById("orderBox");
+    box.style.transform = "scale(1.1)";
+    setTimeout(()=> box.style.transform = "scale(1)",150);
+}
+
+/* 🚀 ANIMATION VERS BOÎTE */
+function sendToBox(obj, callback){
+
+    obj.style.pointerEvents = "none";
+
+    const box = document.getElementById("orderBox");
+    const boxRect = box.getBoundingClientRect();
+    const objRect = obj.getBoundingClientRect();
+
+    const dx = boxRect.left - objRect.left;
+    const dy = boxRect.top - objRect.top;
+
+    obj.style.transition = "transform 0.4s ease, opacity 0.4s ease";
+    obj.style.transform = `translate(${dx}px, ${dy}px) scale(0.2)`;
+    obj.style.opacity = "0";
+
+    setTimeout(()=>{
+        obj.remove();
+        callback();
+    },400);
+}
+
+/* 🎯 SPAWN SIMPLE */
+function spawnObject(){
+
+    const obj = document.createElement("img");
+
+    let item = items[Math.floor(Math.random()*items.length)];
+
+    if(Math.random() < 0.05){
+        item = "star_collier.png";
+    }
+
+    obj.src = "images/" + item;
+    obj.className = "object";
+
+    const belts = [
+        {id:"belt1", speed:2},
+        {id:"belt2", speed:4},
+        {id:"belt3", speed:6}
+    ];
+
+    const chosen = belts[Math.floor(Math.random()*belts.length)];
+    const belt = document.getElementById(chosen.id);
+
+    belt.appendChild(obj);
+
+    let x = -120;
+    obj.style.left = x + "px";
+    obj.style.top = "20px";
+
+    // ⚡ vitesse globale (progression)
+    let baseSpeed = 2 + Math.min(score/10,6);
+
+    const move = setInterval(()=>{
+
+        x += chosen.speed + baseSpeed;
+        obj.style.left = x + "px";
+
+        if(x > window.innerWidth){
+            obj.remove();
+            clearInterval(move);
+        }
+
+    },16);
+
+    obj.onclick = ()=>{
+
+        if(item === "bomb.png"){
+            combo = 0;
+            multiplier = 1;
+            showMessage("💣 BOOM !", "#ff4444");
+            document.querySelectorAll(".object").forEach(o=>{ o.remove(); });
+            return;
+        }
+
+        if(item === "star_collier.png"){
+            score += 5;
+            showMessage("⭐ GOLD +5", "#ffd700");
+            boxBounce();
+            sendToBox(obj, ()=>{ newOrder(); });
+            return;
+        }
+
+        if(item === currentOrder){
+
+            combo++;
+            multiplier = 1 + Math.floor(combo / 5);
+            score += multiplier;
+            scoreDisplay.innerText = "Score : " + score;
+
+            showMessage("COMBO x" + multiplier, "#00ff88");
+            boxBounce();
+
+            sendToBox(obj, ()=>{
+                newOrder();
+            });
+
+        }else{
+
+            combo = 0;
+            multiplier = 1;
+
+            score--;
+            showMessage("BREAK COMBO 😭", "#ff4444");
+            obj.remove();
+        }
+    };
+}
+
+function shake(){
+    document.body.style.transform = "translate(3px,2px)";
+    setTimeout(()=>document.body.style.transform = "translate(-3px,-2px)",50);
+    setTimeout(()=>document.body.style.transform = "translate(0,0)",100);
+}
+
+/* 🔁 LOOP */
+function loop(){
+    spawnObject();
+    setTimeout(loop, 700);
+}
+
+/* 🚀 START */
+newOrder();
+loop();
+
+if(score > 30){
+    setInterval(()=>{
+        spawnObject();
+    },300);
+}
+
+</script>
+
+</body>
+</html>
