@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Box Run</title>
 
 <style>
@@ -322,6 +323,116 @@ button:hover{
     75%{ transform:translateX(-5px); }
 }
 
+@media (max-width:700px), (max-height:720px){
+    .belt{
+        height:112px;
+    }
+
+    #belt1{ top:230px; }
+    #belt2{ top:338px; }
+    #belt3{ top:446px; }
+
+    .object{
+        width:72px;
+        height:72px;
+        left:-90px;
+    }
+
+    #orderZone{
+        top:4px;
+    }
+
+    #orderBox{
+        width:150px;
+        height:150px;
+    }
+
+    #orderImage{
+        width:94px;
+        height:94px;
+        top:28px;
+        left:28px;
+    }
+
+    #score{
+        top:10px;
+        right:10px;
+        min-width:54px;
+        padding:6px 12px;
+        font-size:32px;
+        border-width:3px;
+        box-shadow:4px 4px 0 black;
+    }
+
+    #homeButton{
+        top:10px;
+        left:10px;
+        width:48px;
+        height:48px;
+        font-size:26px;
+        border-width:3px;
+    }
+
+    #comboDisplay{
+        top:66px;
+        left:12px;
+        font-size:28px;
+    }
+
+    #message{
+        top:160px;
+        font-size:34px;
+    }
+
+    #instruction{
+        width:100%;
+        padding:0 12px;
+        font-size:clamp(42px, 15vw, 74px);
+        white-space:normal;
+    }
+
+    #lives{
+        bottom:10px;
+    }
+
+    #lives img{
+        width:44px;
+        margin:3px;
+    }
+
+    .floatText{
+        font-size:28px;
+    }
+
+    #gameOver{
+        padding:20px;
+        font-size:30px;
+    }
+}
+
+@media (max-width:430px){
+    #belt1{ top:218px; }
+    #belt2{ top:326px; }
+    #belt3{ top:434px; }
+
+    #message{
+        top:150px;
+        font-size:30px;
+    }
+
+    #orderBox{
+        width:136px;
+        height:136px;
+    }
+
+    #orderImage{
+        width:84px;
+        height:84px;
+        top:26px;
+        left:26px;
+    }
+}
+
 </style>
 </head>
 
@@ -510,7 +621,7 @@ function spawnObject(){
         ["belt1","belt2","belt3"][Math.floor(Math.random()*3)]
     );
 
-    let x = -120;
+    let x = window.innerWidth <= 700 ? -90 : -120;
     obj.style.left = x + "px";
     belt.appendChild(obj);
 
