@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Box Run - Hardest</title>
+
+<style>
+html, body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial, sans-serif;
+    background:#8fc4ef;
+    image-rendering:pixelated;
+}
+
+body.shake{
+    animation:shake 0.18s linear;
+}
+
+#background{
+    position:fixed;
+    inset:0;
+    background:url("images/fond.png") center/cover no-repeat;
+    z-index:-10;
+    filter:saturate(1.18) contrast(1.08);
+}
+
+#background::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        linear-gradient(rgba(255,0,0,0.16), transparent 28%),
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.35), transparent 28%);
+    pointer-events:none;
+}
+
+.belt{
+    position:absolute;
+    left:0;
+    width:100%;
+    height:140px;
+    overflow:hidden;
+    background:repeating-linear-gradient(
+        90deg,
+        #2e2e2e 0px,
+        #2e2e2e 38px,
+        #686868 38px,
+        #686868 76px
+    );
+    background-size:76px 140px;
+    border-top:5px solid #120000;
+    border-bottom:5px solid #120000;
+    box-shadow:inset 0 12px 0 rgba(255,255,255,0.08), inset 0 -12px 0 rgba(0,0,0,0.24);
+    z-index:1;
+    animation:beltMove 0.42s linear infinite;
+}
+
+#belt1{ top:250px; }
+#belt2{ top:380px; }
+#belt3{ top:510px; }
+
+.object{
+    position:absolute;
+    width:86px;
+    height:86px;
+    left:-120px;
+    top:20px;
+    cursor:pointer;
+    object-fit:contain;
+    z-index:10;
+    user-select:none;
+    -webkit-user-drag:none;
+    transition:transform 0.1s ease, opacity 0.3s ease;
+    will-change:left;
+    backface-visibility:hidden;
+    transform:translateZ(0);
+    filter:drop-shadow(5px 7px 0 rgba(0,0,0,0.38));
+}
+
+.object:hover{
+    transform:translateZ(0) scale(1.1);
+}
+
+.object.hit{
+    filter:drop-shadow(0 0 12px #00ff88);
+}
+
+.object.wrong{
+    filter:drop-shadow(0 0 12px #ff4444) saturate(0.45);
+}
+
+#score{
+    position:absolute;
+    top:15px;
+    right:20px;
+    min-width:72px;
+    padding:8px 18px;
+    text-align:center;
+    font-size:44px;
+    font-weight:bold;
+    color:white;
+    background:rgba(0,0,0,0.38);
+    border:4px solid white;
+    border-radius:8px;
+    box-shadow:5px 5px 0 black;
+    text-shadow:3px 3px 0 black;
+    z-index:1000;
+    transition:transform 0.16s ease;
+}
+
+#score.pop{
+    transform:scale(1.18) rotate(2deg);
+}
+
+#homeButton{
+    position:absolute;
+    top:15px;
+    left:20px;
+    width:58px;
+    height:58px;
+    padding:0;
+    font-size:30px;
+    z-index:11000;
+}
+
+#hardBadge{
+    position:absolute;
+    top:86px;
+    right:22px;
+    font-size:20px;
+    font-weight:bold;
+    color:#ff1f2d;
+    text-shadow:2px 2px 0 black;
+    z-index:1000;
+}
+
+#orderZone{
+    position:absolute;
+    top:8px;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    z-index:9999;
+    pointer-events:none;
+    animation:boxIdle 1s ease-in-out infinite;
+}
+
+#orderBox{
+    position:relative;
+    width:210px;
+    height:210px;
+    filter:drop-shadow(0 12px 0 rgba(0,0,0,0.28));
+}
+
+#boxImg{
+    width:100%;
+    height:100%;
+    position:absolute;
+    z-index:1;
+    object-fit:contain;
+}
+
+#orderImage{
+    position:absolute;
+    width:130px;
+    height:130px;
+    top:40px;
+    left:40px;
+    z-index:2;
+}
+
+#message{
+    position:absolute;
+    top:220px;
+    width:100%;
+    text-align:center;
+    font-size:50px;
+    font-weight:bold;
+    color:white;
+    text-shadow:4px 4px 0 black;
+    opacity:0;
+    z-index:1000;
+    pointer-events:none;
+    transform:translateY(10px) scale(0.95);
+    transition:opacity 0.18s ease, transform 0.18s ease;
+}
+
+#message.show{
+    opacity:1;
+    transform:translateY(0) scale(1);
+}
+
+#instruction{
+    position:absolute;
+    top:50%;
+    left:50%;
+    text-align:center;
+    font-size:90px;
+    font-weight:bold;
+    color:white;
+    text-shadow:7px 7px 0 black;
+    z-index:12000;
+    pointer-events:none;
+    opacity:0;
+    white-space:nowrap;
+    transform:translate(-50%,-50%) scale(0.65) rotate(-4deg);
+    transition:opacity 0.2s ease, transform 0.35s cubic-bezier(.2,1.4,.4,1);
+}
+
+#instruction.show{
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1) rotate(0deg);
+}
+
+#comboDisplay{
+    position:absolute;
+    top:86px;
+    left:20px;
+    text-align:left;
+    font-size:34px;
+    font-weight:bold;
+    color:#ffde59;
+    text-shadow:3px 3px 0 black;
+    z-index:1000;
+    opacity:0;
+    transform:scale(0.9);
+    transition:opacity 0.16s ease, transform 0.16s ease;
+}
+
+#comboDisplay.show{
+    opacity:1;
+    transform:scale(1);
+}
+
+#comboDisplay.pop{
+    transform:scale(1.25) rotate(-4deg);
+}
+
+#lives{
+    position:absolute;
+    bottom:20px;
+    width:100%;
+    text-align:center;
+    z-index:1000;
+}
+
+#lives img{
+    width:56px;
+    margin:5px;
+    filter:drop-shadow(3px 5px 0 rgba(0,0,0,0.35));
+}
+
+.floatText{
+    position:absolute;
+    font-size:34px;
+    font-weight:bold;
+    color:white;
+    text-shadow:3px 3px 0 black;
+    pointer-events:none;
+    z-index:13000;
+    animation:floatUp 0.55s ease-out forwards;
+}
+
+#gameOver{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.84);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    color:white;
+    font-size:40px;
+    z-index:20000;
+    text-align:center;
+    gap:18px;
+    text-shadow:4px 4px 0 black;
+}
+
+button{
+    padding:14px 26px;
+    font-size:22px;
+    font-weight:bold;
+    color:white;
+    background:#d71920;
+    border:4px solid white;
+    border-radius:8px;
+    box-shadow:5px 5px 0 black;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:translateY(-2px);
+}
+
+@keyframes beltMove{
+    from{ background-position-x:0; }
+    to{ background-position-x:76px; }
+}
+
+@keyframes boxIdle{
+    0%,100%{ transform:translateY(0) rotate(-1deg); }
+    50%{ transform:translateY(-5px) rotate(1deg); }
+}
+
+@keyframes floatUp{
+    from{ opacity:1; transform:translate(-50%,0) scale(0.85); }
+    to{ opacity:0; transform:translate(-50%,-55px) scale(1.2); }
+}
+
+@keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-10px); }
+    50%{ transform:translateX(10px); }
+    75%{ transform:translateX(-6px); }
+}
+</style>
+</head>
+
+<body>
+
+<div id="background"></div>
+<button id="homeButton" onclick="window.location.href='index.html'">⌂</button>
+<div id="score">0</div>
+<div id="hardBadge">HARDEST</div>
+<div id="message"></div>
+<div id="instruction">SURVIS !</div>
+<div id="comboDisplay"></div>
+<div id="lives"></div>
+
+<div id="orderZone">
+    <div id="orderBox">
+        <img id="boxImg" src="images/box.png" alt="">
+        <img id="orderImage" alt="">
+    </div>
+</div>
+
+<div id="gameOver">
+    <div>MODE HARDEST TERMINE</div>
+    <div id="finalScore"></div>
+    <button onclick="location.reload()">Rejouer</button>
+    <button onclick="window.location.href='index.html'">Menu</button>
+</div>
+
+<div id="belt1" class="belt"></div>
+<div id="belt2" class="belt"></div>
+<div id="belt3" class="belt"></div>
+
+<script>
+const items = [
+    "apple_1.png",
+    "apple_2.png",
+    "apple_pie.png",
+    "bacon.png",
+    "burger.png",
+    "cookie.png",
+    "dragon_sword.png",
+    "emerald.png",
+    "star_collier.png",
+    "sword.png"
+];
+
+let score = 0;
+let lives = 3;
+let currentOrder;
+let combo = 0;
+let instructionTimeout;
+let lastOrderSpawnTime = 0;
+let messageTimeout;
+
+const orderImage = document.getElementById("orderImage");
+const scoreDisplay = document.getElementById("score");
+const message = document.getElementById("message");
+const comboDisplay = document.getElementById("comboDisplay");
+const instruction = document.getElementById("instruction");
+const belts = ["belt1","belt2","belt3"];
+
+function showMessage(text,color){
+    clearTimeout(messageTimeout);
+    message.innerText = text;
+    message.style.color = color;
+    message.classList.add("show");
+
+    messageTimeout = setTimeout(()=>{
+        message.classList.remove("show");
+    },460);
+}
+
+function showInstruction(text){
+    clearTimeout(instructionTimeout);
+    instruction.innerText = text;
+    instruction.classList.add("show");
+
+    instructionTimeout = setTimeout(()=>{
+        instruction.classList.remove("show");
+    },760);
+}
+
+function pulseElement(element){
+    element.classList.remove("pop");
+    void element.offsetWidth;
+    element.classList.add("pop");
+
+    setTimeout(()=>{
+        element.classList.remove("pop");
+    },160);
+}
+
+function showFloatingText(text,x,y,color){
+    const floatText = document.createElement("div");
+    floatText.className = "floatText";
+    floatText.innerText = text;
+    floatText.style.left = x + "px";
+    floatText.style.top = y + "px";
+    floatText.style.color = color;
+    document.body.appendChild(floatText);
+    setTimeout(()=>floatText.remove(),600);
+}
+
+function shakeScreen(){
+    document.body.classList.remove("shake");
+    void document.body.offsetWidth;
+    document.body.classList.add("shake");
+
+    setTimeout(()=>{
+        document.body.classList.remove("shake");
+    },200);
+}
+
+function newOrder(){
+    let nextOrder = currentOrder;
+
+    while(nextOrder === currentOrder){
+        nextOrder = items[Math.floor(Math.random() * items.length)];
+    }
+
+    currentOrder = nextOrder;
+    orderImage.src = "images/" + currentOrder;
+    lastOrderSpawnTime = performance.now();
+
+    showMessage(currentOrder.replace(".png","").toUpperCase(),"#ffffff");
+}
+
+function boxBounce(){
+    const box = document.getElementById("orderBox");
+    box.style.transition = "transform 0.12s";
+    box.style.transform = "scale(1.18) rotate(2deg)";
+
+    setTimeout(()=>{
+        box.style.transform = "scale(1)";
+    },120);
+}
+
+function updateLives(){
+    const zone = document.getElementById("lives");
+    zone.innerHTML = "";
+
+    for(let i = 0; i < lives; i++){
+        const img = document.createElement("img");
+        img.src = "images/box.png";
+        zone.appendChild(img);
+    }
+}
+
+function chooseItem(){
+    const now = performance.now();
+    const mustSpawnOrder = now - lastOrderSpawnTime >= 1800;
+    const hardChance = score > 12 ? 0.28 : 0.18;
+
+    if(mustSpawnOrder || Math.random() < hardChance){
+        lastOrderSpawnTime = now;
+        return currentOrder;
+    }
+
+    return items[Math.floor(Math.random() * items.length)];
+}
+
+function spawnObject(){
+    const obj = document.createElement("img");
+    const item = chooseItem();
+    const belt = document.getElementById(belts[Math.floor(Math.random() * belts.length)]);
+
+    obj.src = "images/" + item;
+    obj.className = "object";
+    obj.style.top = (12 + Math.random() * 34) + "px";
+
+    let x = -120;
+    obj.style.left = x + "px";
+    belt.appendChild(obj);
+
+    const speed = 4.2 + Math.min(score / 5, 8) + Math.random() * 1.4;
+
+    obj.onload = ()=>{
+        const move = setInterval(()=>{
+            x += speed;
+            obj.style.left = x + "px";
+
+            if(x > window.innerWidth){
+                obj.remove();
+                clearInterval(move);
+            }
+        },16);
+
+        obj.onclick = (event)=>{
+            obj.onclick = null;
+            clearInterval(move);
+
+            if(item === currentOrder){
+                score++;
+                combo++;
+                scoreDisplay.innerText = score;
+                pulseElement(scoreDisplay);
+                comboDisplay.innerText = "x" + combo;
+                comboDisplay.classList.add("show");
+                pulseElement(comboDisplay);
+
+                showMessage("GOOD","#00ff88");
+                showFloatingText("+1",event.clientX,event.clientY,"#00ff88");
+                boxBounce();
+
+                if(combo % 5 === 0){
+                    showInstruction("x" + combo + " Combo !");
+                }
+
+                if(score === 4 || score === 10 || score === 18){
+                    showInstruction("PLUS VITE !");
+                }
+
+                document.body.style.filter = "brightness(1.7)";
+                setTimeout(()=>{
+                    document.body.style.filter = "brightness(1)";
+                },65);
+
+                obj.style.transition = "transform 0.16s ease, opacity 0.16s ease";
+                obj.classList.add("hit");
+                obj.style.transform = "scale(1.32)";
+                obj.style.opacity = "0";
+
+                setTimeout(()=>obj.remove(),160);
+                newOrder();
+            }else{
+                combo = 0;
+                comboDisplay.innerText = "";
+                comboDisplay.classList.remove("show");
+
+                lives--;
+                updateLives();
+
+                showMessage("CASSE","#ff4444");
+                showFloatingText("-1",event.clientX,event.clientY,"#ff4444");
+                shakeScreen();
+
+                obj.style.transition = "transform 0.14s ease, opacity 0.14s ease";
+                obj.classList.add("wrong");
+                obj.style.transform = "scale(0.7) rotate(-14deg)";
+                obj.style.opacity = "0";
+                setTimeout(()=>obj.remove(),140);
+
+                if(lives <= 0){
+                    document.getElementById("finalScore").innerText = score;
+                    document.getElementById("gameOver").style.display = "flex";
+                }
+            }
+        };
+    };
+}
+
+function loop(){
+    spawnObject();
+
+    if(score > 5 && Math.random() < 0.45){
+        setTimeout(spawnObject,120);
+    }
+
+    let delay = 470;
+
+    if(score > 4) delay = 390;
+    if(score > 10) delay = 310;
+    if(score > 18) delay = 240;
+    if(score > 30) delay = 180;
+
+    setTimeout(loop,delay);
+}
+
+window.onload = ()=>{
+    newOrder();
+    updateLives();
+    showInstruction("SURVIS !");
+    loop();
+};
+</script>
+
+</body>
+</html>

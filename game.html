@@ -13,9 +13,15 @@ html, body{
     height:100%;
     overflow:hidden;
     font-family:Arial;
+    background:#8fc4ef;
+    image-rendering:pixelated;
 }
 
-/* 🌄 fond */
+body.shake{
+    animation:shake 0.18s linear;
+}
+
+/* 🌄 BACKGROUND */
 #background{
     position:fixed;
     inset:0;
@@ -23,6 +29,17 @@ html, body{
     z-index:-10;
 }
 
+#background::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        linear-gradient(rgba(255,255,255,0.18), transparent 26%),
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.35), transparent 28%);
+    pointer-events:none;
+}
+
+/* 🚚 TAPIS */
 .belt{
     position:absolute;
     left:0;
@@ -31,115 +48,278 @@ html, body{
     overflow:hidden;
     background: repeating-linear-gradient(
         90deg,
-        #444 0px,
-        #444 40px,
-        #666 40px,
-        #666 80px
+        #3f3f3f 0px,
+        #3f3f3f 42px,
+        #656565 42px,
+        #656565 84px
     );
-    border-top:3px solid #222;
+    background-size:84px 140px;
+    border-top:5px solid #202020;
+    border-bottom:5px solid #202020;
+    box-shadow:inset 0 12px 0 rgba(255,255,255,0.08), inset 0 -12px 0 rgba(0,0,0,0.18);
     z-index:1;
+    animation:beltMove 0.7s linear infinite;
 }
 
 #belt1{ top:250px; }
 #belt2{ top:380px; }
 #belt3{ top:510px; }
 
+/* 📦 OBJETS */
 .object{
     position:absolute;
     width:90px;
     height:90px;
+    left:-120px;
     top:20px;
     cursor:pointer;
     object-fit:contain;
-    z-index:2;
-    will-change: transform;
+    z-index:10;
+    user-select:none;
+    -webkit-user-drag:none;
+    transition:transform 0.1s ease, opacity 0.3s ease;
+    will-change: left;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    filter:drop-shadow(5px 7px 0 rgba(0,0,0,0.35));
+}
+
+.object:hover{
+    transform:translateZ(0) scale(1.12);
+}
+
+.object.hit{
+    filter:drop-shadow(0 0 12px #00ff88);
+}
+
+.object.wrong{
+    filter:drop-shadow(0 0 12px #ff4444) saturate(0.5);
 }
 
 /* 📦 SCORE */
 #score{
     position:absolute;
-    top:10px;
+    top:15px;
     right:20px;
-    font-size:30px;
+    font-size:44px;
     font-weight:bold;
-    z-index:10;
+    color:white;
+    text-shadow:3px 3px 0 black;
+    z-index:1000;
+    min-width:72px;
+    padding:8px 18px;
+    text-align:center;
+    background:rgba(0,0,0,0.35);
+    border:4px solid white;
+    border-radius:8px;
+    box-shadow:5px 5px 0 black;
+    transition:transform 0.16s ease;
+}
+
+#homeButton{
+    position:absolute;
+    top:15px;
+    left:20px;
+    width:58px;
+    height:58px;
+    padding:0;
+    font-size:30px;
+    z-index:11000;
+}
+
+#score.pop{
+    transform:scale(1.18) rotate(2deg);
 }
 
 /* 📦 BOÎTE */
 #orderZone{
     position:absolute;
-    top:30px;
+    top:8px;
     width:100%;
     display:flex;
     justify-content:center;
-    z-index:10;
+    z-index:9999;
+    pointer-events:none;
+    animation:boxIdle 1.4s ease-in-out infinite;
 }
 
 #orderBox{
     position:relative;
-    width:180px;
-    height:180px;
-    margin:auto;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    width:210px;
+    height:210px;
+    filter:drop-shadow(0 12px 0 rgba(0,0,0,0.25));
 }
 
 #boxImg{
+    width:100%;
+    height:100%;
     position:absolute;
-    width:150%;
-    height:150%;
-    object-fit:contain;
     z-index:1;
+    object-fit:contain;
 }
 
 #orderImage{
-    position:relative;
-    width:110px;
-    height:110px;
+    position:absolute;
+    width:130px;
+    height:130px;
+    top:40px;
+    left:40px;
     z-index:2;
 }
 
-/* 🎮 message */
+/* 📢 MESSAGE */
 #message{
     position:absolute;
     top:220px;
     width:100%;
     text-align:center;
-    font-size:40px;
+    font-size:50px;
     font-weight:bold;
     color:white;
-    text-shadow:2px 2px 6px black;
+    text-shadow:4px 4px 0 black;
     opacity:0;
+    z-index:1000;
+    pointer-events:none;
+    transform:translateY(10px) scale(0.95);
+    transition:opacity 0.18s ease, transform 0.18s ease;
 }
 
-/* 📦 objets */
-.object{
+#message.show{
+    opacity:1;
+    transform:translateY(0) scale(1);
+}
+
+#instruction{
     position:absolute;
-    width:90px;
-    height:90px;
-    cursor:pointer;
-    transition:transform 0.1s ease, opacity 0.3s ease;
-    user-select:none;
-    -webkit-user-drag:none;
+    top:50%;
+    left:50%;
+    text-align:center;
+    font-size:90px;
+    font-weight:bold;
+    color:white;
+    text-shadow:7px 7px 0 black;
+    z-index:12000;
+    pointer-events:none;
+    opacity:0;
+    white-space:nowrap;
+    transform:translate(-50%,-50%) scale(0.65) rotate(-4deg);
+    transition:opacity 0.2s ease, transform 0.35s cubic-bezier(.2,1.4,.4,1);
 }
 
-/* 💀 game over */
+#instruction.show{
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1) rotate(0deg);
+}
+
+#comboDisplay{
+    position:absolute;
+    top:86px;
+    left:20px;
+    text-align:left;
+    font-size:34px;
+    font-weight:bold;
+    color:yellow;
+    text-shadow:3px 3px 0 black;
+    z-index:1000;
+    opacity:0;
+    transform:scale(0.9);
+    transition:opacity 0.16s ease, transform 0.16s ease;
+}
+
+#comboDisplay.show{
+    opacity:1;
+    transform:scale(1);
+}
+
+#comboDisplay.pop{
+    transform:scale(1.25) rotate(-4deg);
+}
+
+/* ❤️ VIES */
+#lives{
+    position:absolute;
+    bottom:20px;
+    width:100%;
+    text-align:center;
+    z-index:1000;
+}
+
+#lives img{
+    width:60px;
+    margin:5px;
+    filter:drop-shadow(3px 5px 0 rgba(0,0,0,0.35));
+}
+
+.floatText{
+    position:absolute;
+    font-size:34px;
+    font-weight:bold;
+    color:white;
+    text-shadow:3px 3px 0 black;
+    pointer-events:none;
+    z-index:13000;
+    animation:floatUp 0.55s ease-out forwards;
+}
+
+/* 💀 GAME OVER */
 #gameOver{
     position:absolute;
     inset:0;
-    background:rgba(0,0,0,0.8);
+    background:rgba(0,0,0,0.82);
     display:none;
     justify-content:center;
     align-items:center;
     flex-direction:column;
     color:white;
     font-size:40px;
+    z-index:20000;
+    text-align:center;
+    gap:18px;
+    text-shadow:4px 4px 0 black;
 }
 
 button{
-    padding:10px 20px;
-    font-size:20px;
+    padding:14px 26px;
+    font-size:22px;
+    font-weight:bold;
+    color:white;
+    background:#ff6b35;
+    border:4px solid white;
+    border-radius:8px;
+    box-shadow:5px 5px 0 black;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:translateY(-2px);
+}
+
+@keyframes beltMove{
+    from{ background-position-x:0; }
+    to{ background-position-x:84px; }
+}
+
+@keyframes boxIdle{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-4px); }
+}
+
+@keyframes floatUp{
+    from{
+        opacity:1;
+        transform:translate(-50%,0) scale(0.85);
+    }
+    to{
+        opacity:0;
+        transform:translate(-50%,-55px) scale(1.2);
+    }
+}
+
+@keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-8px); }
+    50%{ transform:translateX(8px); }
+    75%{ transform:translateX(-5px); }
 }
 
 </style>
@@ -149,9 +329,14 @@ button{
 
 <div id="background"></div>
 
-<div id="score">Score : 0</div>
+<button id="homeButton" onclick="window.location.href='index.html'">⌂</button>
+<div id="score">0</div>
 
 <div id="message"></div>
+<div id="instruction">ATTRAPE !</div>
+<div id="comboDisplay"></div>
+
+<div id="lives"></div>
 
 <div id="orderZone">
     <div id="orderBox">
@@ -172,7 +357,7 @@ button{
 
 <script>
 
-/* 🎮 ITEMS */
+/* 🎮 DATA */
 const items = [
 "apple_1.png",
 "apple_2.png",
@@ -187,169 +372,263 @@ const items = [
 ];
 
 let score = 0;
+let lives = 4;
 let currentOrder;
 let combo = 0;
-let multiplier = 1;
+let instructionTimeout;
+let lastOrderSpawnTime = 0;
+let messageTimeout;
 
+/* DOM */
 const orderImage = document.getElementById("orderImage");
 const scoreDisplay = document.getElementById("score");
 const message = document.getElementById("message");
+const comboDisplay = document.getElementById("comboDisplay");
+const instruction = document.getElementById("instruction");
 
 /* 📦 MESSAGE */
 function showMessage(text,color){
+    clearTimeout(messageTimeout);
+
     message.innerText = text;
     message.style.color = color;
-    message.style.opacity = 1;
+    message.classList.add("show");
+
+    messageTimeout = setTimeout(()=>{
+        message.classList.remove("show");
+    },600);
+}
+
+function showInstruction(text){
+    clearTimeout(instructionTimeout);
+
+    instruction.innerText = text;
+    instruction.classList.add("show");
+
+    instructionTimeout = setTimeout(()=>{
+        instruction.classList.remove("show");
+    },900);
+}
+
+function pulseElement(element){
+    element.classList.remove("pop");
+    void element.offsetWidth;
+    element.classList.add("pop");
 
     setTimeout(()=>{
-        message.style.opacity = 0;
-    },600);
+        element.classList.remove("pop");
+    },180);
+}
+
+function showFloatingText(text,x,y,color){
+    const floatText = document.createElement("div");
+
+    floatText.className = "floatText";
+    floatText.innerText = text;
+    floatText.style.left = x + "px";
+    floatText.style.top = y + "px";
+    floatText.style.color = color;
+
+    document.body.appendChild(floatText);
+    setTimeout(()=>floatText.remove(),600);
+}
+
+function shakeScreen(){
+    document.body.classList.remove("shake");
+    void document.body.offsetWidth;
+    document.body.classList.add("shake");
+
+    setTimeout(()=>{
+        document.body.classList.remove("shake");
+    },200);
 }
 
 /* 📦 NOUVELLE COMMANDE */
 function newOrder(){
     currentOrder = items[Math.floor(Math.random()*items.length)];
     orderImage.src = "images/" + currentOrder;
+    lastOrderSpawnTime = performance.now();
+
+    showMessage(
+        currentOrder.replace(".png","").toUpperCase(),
+        "#ffffff"
+    );
 }
 
-/* 💥 BOOM BOÎTE */
 function boxBounce(){
-    const box = document.getElementById("orderBox");
-    box.style.transform = "scale(1.1)";
-    setTimeout(()=> box.style.transform = "scale(1)",150);
-}
 
-/* 🚀 ANIMATION VERS BOÎTE */
-function sendToBox(obj, callback){
+    const box =
+    document.getElementById("orderBox");
 
-    obj.style.pointerEvents = "none";
+    box.style.transition =
+    "transform 0.15s";
 
-    const box = document.getElementById("orderBox");
-    const boxRect = box.getBoundingClientRect();
-    const objRect = obj.getBoundingClientRect();
-
-    const dx = boxRect.left - objRect.left;
-    const dy = boxRect.top - objRect.top;
-
-    obj.style.transition = "transform 0.4s ease, opacity 0.4s ease";
-    obj.style.transform = `translate(${dx}px, ${dy}px) scale(0.2)`;
-    obj.style.opacity = "0";
+    box.style.transform =
+    "scale(1.15)";
 
     setTimeout(()=>{
-        obj.remove();
-        callback();
-    },400);
+        box.style.transform =
+        "scale(1)";
+    },150);
 }
 
-/* 🎯 SPAWN SIMPLE */
+/* 📦 VIES */
+function updateLives(){
+    const zone = document.getElementById("lives");
+    zone.innerHTML = "";
+
+    for(let i=0;i<lives;i++){
+        const img = document.createElement("img");
+        img.src = "images/box.png";
+        zone.appendChild(img);
+    }
+}
+
+/* 🎮 SPAWN */
 function spawnObject(){
 
     const obj = document.createElement("img");
 
-    let item = items[Math.floor(Math.random()*items.length)];
+    const now = performance.now();
+    const mustSpawnOrder = now - lastOrderSpawnTime >= 3000;
+    const item = mustSpawnOrder
+        ? currentOrder
+        : items[Math.floor(Math.random()*items.length)];
 
-    if(Math.random() < 0.05){
-        item = "star_collier.png";
+    if(item === currentOrder){
+        lastOrderSpawnTime = now;
     }
 
     obj.src = "images/" + item;
+
     obj.className = "object";
+    obj.src = "images/" + item;
 
-    const belts = [
-        {id:"belt1", speed:2},
-        {id:"belt2", speed:4},
-        {id:"belt3", speed:6}
-    ];
+    obj.style.top = "20px";
 
-    const chosen = belts[Math.floor(Math.random()*belts.length)];
-    const belt = document.getElementById(chosen.id);
-
-    belt.appendChild(obj);
+    const belt = document.getElementById(
+        ["belt1","belt2","belt3"][Math.floor(Math.random()*3)]
+    );
 
     let x = -120;
     obj.style.left = x + "px";
-    obj.style.top = "20px";
+    belt.appendChild(obj);
 
-    // ⚡ vitesse globale (progression)
-    let baseSpeed = 2 + Math.min(score/10,6);
+    const speed = score >= 6
+        ? 3.8 + Math.min((score - 6) / 8, 6)
+        : 2 + score / 10;
 
-    const move = setInterval(()=>{
+    obj.onload = ()=>{
 
-        x += chosen.speed + baseSpeed;
-        obj.style.left = x + "px";
+        const move = setInterval(()=>{
 
-        if(x > window.innerWidth){
-            obj.remove();
+            x += speed;
+
+            obj.style.left = x + "px";
+
+            if(x > window.innerWidth){
+
+                obj.remove();
+                clearInterval(move);
+            }
+
+        },16);
+
+        obj.onclick = (event)=>{
+
+            obj.onclick = null; // 🔥 empêche double clic bug
             clearInterval(move);
-        }
 
-    },16);
+            if(item === currentOrder){
 
-    obj.onclick = ()=>{
+                score++;
+                combo++;
+                scoreDisplay.innerText = score;
+                pulseElement(scoreDisplay);
+                comboDisplay.innerText =
+                "x" + combo;
+                comboDisplay.classList.add("show");
+                pulseElement(comboDisplay);
 
-        if(item === "bomb.png"){
-            combo = 0;
-            multiplier = 1;
-            showMessage("💣 BOOM !", "#ff4444");
-            document.querySelectorAll(".object").forEach(o=>{ o.remove(); });
-            return;
-        }
+                showMessage("✔ GOOD","#00ff88");
+                showFloatingText("+1",event.clientX,event.clientY,"#00ff88");
+                boxBounce();
 
-        if(item === "star_collier.png"){
-            score += 5;
-            showMessage("⭐ GOLD +5", "#ffd700");
-            boxBounce();
-            sendToBox(obj, ()=>{ newOrder(); });
-            return;
-        }
+                if(combo % 5 === 0){
+                    showInstruction("x" + combo + " Combo !");
+                }
 
-        if(item === currentOrder){
+                if(score === 6){
+                    showInstruction("PLUS VITE !");
+                }
 
-            combo++;
-            multiplier = 1 + Math.floor(combo / 5);
-            score += multiplier;
-            scoreDisplay.innerText = "Score : " + score;
+                document.body.style.filter = "brightness(1.5)";
+                setTimeout(()=>{
+                    document.body.style.filter = "brightness(1)";
+                },80);
 
-            showMessage("COMBO x" + multiplier, "#00ff88");
-            boxBounce();
+                obj.style.transition = "transform 0.2s ease, opacity 0.2s ease";
+                obj.classList.add("hit");
+                obj.style.transform = "scale(1.3)";
+                obj.style.opacity = "0";
 
-            sendToBox(obj, ()=>{
+                setTimeout(()=>obj.remove(),200);
+
                 newOrder();
-            });
 
-        }else{
+            }else{
 
-            combo = 0;
-            multiplier = 1;
+                combo = 0;
+                comboDisplay.innerText = "";
+                comboDisplay.classList.remove("show");
 
-            score--;
-            showMessage("BREAK COMBO 😭", "#ff4444");
-            obj.remove();
-        }
+                lives--;
+                updateLives();
+
+                showMessage("✖ BOÎTE CASSÉE","#ff4444");
+                showFloatingText("-1",event.clientX,event.clientY,"#ff4444");
+                shakeScreen();
+
+                obj.style.transition = "transform 0.16s ease, opacity 0.16s ease";
+                obj.classList.add("wrong");
+                obj.style.transform = "scale(0.75) rotate(-12deg)";
+                obj.style.opacity = "0";
+
+                setTimeout(()=>obj.remove(),160);
+
+                if(lives <= 0){
+                    document.getElementById("finalScore").innerText = score;
+                    document.getElementById("gameOver").style.display = "flex";
+                }
+            }
+        };
     };
-}
-
-function shake(){
-    document.body.style.transform = "translate(3px,2px)";
-    setTimeout(()=>document.body.style.transform = "translate(-3px,-2px)",50);
-    setTimeout(()=>document.body.style.transform = "translate(0,0)",100);
 }
 
 /* 🔁 LOOP */
 function loop(){
     spawnObject();
-    setTimeout(loop, 700);
+
+    let delay = 700;
+
+    if(score >= 6) delay = 550;
+    if(score > 10) delay = 550;
+    if(score > 20) delay = 450;
+    if(score > 40) delay = 350;
+    if(score > 70) delay = 250;
+
+    setTimeout(loop, delay);
 }
 
 /* 🚀 START */
-newOrder();
-loop();
+window.onload = ()=>{
 
-if(score > 30){
-    setInterval(()=>{
-        spawnObject();
-    },300);
-}
+    newOrder();
+    updateLives();
+    showInstruction("ATTRAPE !");
+    loop();
+
+};
 
 </script>
 

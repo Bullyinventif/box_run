@@ -2,96 +2,239 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Box Run</title>
 
 <style>
 
-body{
-    margin:0;
-    height:100vh;
-    overflow:hidden;
-    font-family:Arial;
+*{
+    box-sizing:border-box;
 }
 
-/* 🌄 fond */
+html, body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial, sans-serif;
+    background:#8fc4ef;
+    image-rendering:pixelated;
+}
+
 #bg{
     position:fixed;
     inset:0;
     background:url("images/fond.png") center/cover no-repeat;
-    filter:brightness(0.9);
+    filter:brightness(0.92) saturate(1.08);
 }
 
-/* ✨ overlay style jeu */
 #overlay{
     position:fixed;
     inset:0;
-    background:radial-gradient(circle at center, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
+    background:
+        linear-gradient(rgba(255,255,255,0.18), transparent 28%),
+        radial-gradient(circle at 50% 35%, rgba(255,255,255,0.08), rgba(0,0,0,0.62) 78%);
 }
 
-/* 🎮 container menu */
+#floor{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:130px;
+    background:repeating-linear-gradient(
+        90deg,
+        #3f3f3f 0,
+        #3f3f3f 44px,
+        #666 44px,
+        #666 88px
+    );
+    border-top:6px solid #202020;
+    box-shadow:inset 0 14px 0 rgba(255,255,255,0.08);
+    animation:beltMove 0.8s linear infinite;
+}
+
 #menu{
     position:absolute;
-    top:50%;
+    top:48%;
     left:50%;
+    width:min(720px, calc(100% - 36px));
     transform:translate(-50%,-50%);
     text-align:center;
     color:white;
 }
 
-/* 📦 titre style gros jeu */
+#logoBox{
+    display:inline-grid;
+    place-items:center;
+    width:150px;
+    height:150px;
+    margin-bottom:8px;
+    filter:drop-shadow(0 12px 0 rgba(0,0,0,0.28));
+    animation:logoBounce 1.35s ease-in-out infinite;
+}
+
+#logoBox img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
 h1{
-    font-size:80px;
     margin:0;
-    text-shadow:4px 4px 0px black;
-    letter-spacing:3px;
-    animation:float 2s ease-in-out infinite;
+    font-size:clamp(54px, 11vw, 108px);
+    line-height:0.9;
+    color:#fff;
+    text-shadow:7px 7px 0 #000;
+    letter-spacing:0;
 }
 
-/* 🎮 sous titre */
 #sub{
-    margin-top:10px;
-    font-size:20px;
-    opacity:0.9;
-}
-
-/* ▶ bouton play */
-button{
-    margin-top:25px;
-    padding:15px 40px;
-    font-size:30px;
-    border:none;
-    border-radius:15px;
-    cursor:pointer;
-    background:#00ff88;
+    margin-top:14px;
+    font-size:clamp(20px, 3vw, 28px);
     font-weight:bold;
-    box-shadow:0 6px 0 #0a7a4a;
-    transition:transform 0.1s ease;
+    color:#ffe66d;
+    text-shadow:3px 3px 0 #000;
 }
 
-button:active{
-    transform:translateY(4px);
-    box-shadow:0 2px 0 #0a7a4a;
+#warning{
+    position:absolute;
+    top:16px;
+    left:16px;
+    width:min(320px, calc(100% - 32px));
+    color:#ff1f2d;
+    text-align:left;
+    z-index:20;
+    text-shadow:2px 2px 0 #000;
 }
 
-/* 📦 objets décor qui flottent */
+#warningTitle{
+    display:block;
+    font-size:18px;
+    font-weight:bold;
+    color:#ff1f2d;
+}
+
+#warningText{
+    margin:4px 0 0;
+    font-size:13px;
+    font-weight:bold;
+    line-height:1.25;
+}
+
+#playButton,
+#hardButton{
+    display:block;
+    margin-top:26px;
+    margin-left:auto;
+    margin-right:auto;
+    padding:16px 42px;
+    min-width:230px;
+    font-size:32px;
+    font-weight:bold;
+    color:#102015;
+    background:#00ff88;
+    border:4px solid white;
+    border-radius:8px;
+    box-shadow:0 8px 0 #087344, 6px 14px 0 rgba(0,0,0,0.35);
+    cursor:pointer;
+    transition:transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
+}
+
+#hardButton{
+    margin-top:16px;
+    color:white;
+    background:#d71920;
+    box-shadow:0 8px 0 #7a0710, 6px 14px 0 rgba(0,0,0,0.35);
+}
+
+#playButton:hover:not(:disabled),
+#hardButton:hover{
+    transform:translateY(-3px) scale(1.03);
+    filter:brightness(1.08);
+}
+
+#playButton:active:not(:disabled),
+#hardButton:active{
+    transform:translateY(5px);
+    box-shadow:0 3px 0 #087344, 4px 7px 0 rgba(0,0,0,0.35);
+}
+
+#hardButton:active{
+    box-shadow:0 3px 0 #7a0710, 4px 7px 0 rgba(0,0,0,0.35);
+}
+
+#playButton:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+    filter:saturate(0.25);
+}
+
 .floating{
     position:absolute;
-    width:70px;
-    height:70px;
-    animation:move 6s linear infinite;
-    opacity:0.8;
+    width:clamp(58px, 7vw, 88px);
+    height:clamp(58px, 7vw, 88px);
+    object-fit:contain;
+    opacity:0.86;
+    filter:drop-shadow(5px 7px 0 rgba(0,0,0,0.35));
+    animation:floatItem 7s linear infinite;
+    pointer-events:none;
 }
 
-@keyframes move{
-    0%{transform:translateY(120vh) rotate(0deg);}
-    100%{transform:translateY(-20vh) rotate(360deg);}
+.spark{
+    position:absolute;
+    width:16px;
+    height:16px;
+    background:#ffde59;
+    border:3px solid white;
+    box-shadow:3px 3px 0 #000;
+    transform:rotate(45deg);
+    animation:sparkBlink 1s steps(2,end) infinite;
 }
 
-/* ✨ animation titre */
-@keyframes float{
-    0%{transform:translateY(0px);}
-    50%{transform:translateY(-10px);}
-    100%{transform:translateY(0px);}
+body.leaving{
+    transition:transform 0.32s ease, opacity 0.32s ease, filter 0.32s ease;
+    transform:scale(1.18);
+    opacity:0;
+    filter:brightness(1.6);
+}
+
+@keyframes beltMove{
+    from{ background-position-x:0; }
+    to{ background-position-x:88px; }
+}
+
+@keyframes logoBounce{
+    0%,100%{ transform:translateY(0) rotate(-2deg); }
+    50%{ transform:translateY(-8px) rotate(2deg); }
+}
+
+@keyframes floatItem{
+    0%{ transform:translateY(122vh) rotate(0deg) scale(0.9); }
+    100%{ transform:translateY(-24vh) rotate(360deg) scale(1.08); }
+}
+
+@keyframes sparkBlink{
+    0%,100%{ opacity:0.2; transform:rotate(45deg) scale(0.7); }
+    50%{ opacity:1; transform:rotate(45deg) scale(1.1); }
+}
+
+@media (max-width:560px){
+    #menu{
+        top:46%;
+    }
+
+    #logoBox{
+        width:112px;
+        height:112px;
+    }
+
+    #playButton,
+    #hardButton{
+        width:100%;
+        min-width:0;
+        font-size:28px;
+    }
 }
 
 </style>
@@ -101,38 +244,51 @@ button:active{
 
 <div id="bg"></div>
 <div id="overlay"></div>
+<div id="floor"></div>
 
-<!-- 🎮 MENU -->
-<div id="menu">
+<aside id="warning" aria-label="Avertissement">
+    <span id="warningTitle">WARNING FLASH</span>
+    <p id="warningText">Lumieres clignotantes et effets rapides.</p>
+</aside>
 
-    <h1>📦 BOX RUN</h1>
+<div class="spark" style="top:12%; left:14%; animation-delay:0s;"></div>
+<div class="spark" style="top:20%; right:18%; animation-delay:0.35s;"></div>
+<div class="spark" style="bottom:20%; left:22%; animation-delay:0.7s;"></div>
 
-    <div id="sub">Usine de colis</div>
+<main id="menu">
+    <div id="logoBox">
+        <img src="images/box.png" alt="">
+    </div>
 
-    <button onclick="start()">PLAY ▶</button>
+    <h1>BOX RUN</h1>
+    <div id="sub">Attrape la bonne commande avant la panique.</div>
 
-</div>
+    <button id="playButton" type="button">PLAY</button>
+    <button id="hardButton" type="button">MODE HARDEST</button>
+</main>
 
-<!-- ✨ objets décor -->
-<img class="floating" src="images/apple_1.png" style="left:10%; animation-delay:0s;">
-<img class="floating" src="images/apple_2.png" style="left:40%; animation-delay:1.5s;">
-<img class="floating" src="images/burger.png" style="left:30%; animation-delay:2s;">
-<img class="floating" src="images/cookie.png" style="left:20%; animation-delay:1s;">
-<img class="floating" src="images/box.png" style="left:60%; animation-delay:1.5s;">
-<img class="floating" src="images/sword.png" style="left:80%; animation-delay:2s;">
+<img class="floating" src="images/apple_1.png" style="left:7%; animation-delay:0s;">
+<img class="floating" src="images/apple_2.png" style="left:42%; animation-delay:1.5s;">
+<img class="floating" src="images/burger.png" style="left:28%; animation-delay:2.4s;">
+<img class="floating" src="images/cookie.png" style="left:17%; animation-delay:0.8s;">
+<img class="floating" src="images/box.png" style="left:62%; animation-delay:1.1s;">
+<img class="floating" src="images/sword.png" style="left:81%; animation-delay:2s;">
+<img class="floating" src="images/emerald.png" style="left:72%; animation-delay:3.2s;">
 
 <script>
 
-function start(){
+const playButton = document.getElementById("playButton");
+const hardButton = document.getElementById("hardButton");
 
-    document.body.style.transition = "0.3s ease";
-    document.body.style.transform = "scale(1.2)";
-    document.body.style.opacity = "0";
+playButton.addEventListener("click",()=>start("game.html"));
+hardButton.addEventListener("click",()=>start("game_hard.html"));
+
+function start(page){
+    document.body.classList.add("leaving");
 
     setTimeout(()=>{
-        window.location.href = "game.html";
-    },300);
-
+        window.location.href = page;
+    },320);
 }
 
 </script>
