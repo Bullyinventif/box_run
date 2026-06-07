@@ -80,6 +80,7 @@ body.shake{
     backface-visibility:hidden;
     transform:translateZ(0);
     filter:drop-shadow(5px 7px 0 rgba(0,0,0,0.38));
+    padding:10px;
 }
 
 .object:hover{
@@ -695,10 +696,10 @@ function loop(){
 
     let delay = 470;
 
-    if(score > 4) delay = 390;
-    if(score > 10) delay = 310;
-    if(score > 18) delay = 240;
-    if(score > 30) delay = 180;
+    if(score > 10) delay = 450;
+    if(score > 25) delay = 390;
+    if(score > 35) delay = 310;
+    if(score > 50) delay = 240;
 
     setTimeout(loop,delay);
 }
